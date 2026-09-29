@@ -1,0 +1,39 @@
+name: Deploy site to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    paths: ["site/**", ".github/workflows/pages.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Point the site at the deployed proxy
+        env:
+          PROXY_URL: ${{ vars.PROXY_URL }}
+        run: |
+          if [ -z "$PROXY_URL" ]; then
+            echo "::error::Set the PROXY_URL repository variable to the Worker URL"; exit 1
+          fi
+          echo "window.HM_CONFIG = { proxyUrl: \"${PROXY_URL%/}\" };" > site/config.js
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - id: deployment
+        uses: actions/deploy-pages@v4

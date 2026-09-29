@@ -1,0 +1,15 @@
+name = "hm-forecasts-proxy"
+main = "src/index.js"
+compatibility_date = "2026-09-01"
+
+[vars]
+EDR_BASE = "https://edr-87fe873d630c8edd.compute.arraylake.app/v1/services/edr/the-nature-conservancy"
+TILES_BASE = "https://tiles-746fa0fa617c4822.compute.arraylake.app/v1/services/tiles/the-nature-conservancy"
+REPO = "hm_probability_forecast"
+REF = "main"
+GROUPS = "hm_prob_forecast,hm_observed"
+# Comma-separated. The first entry is returned for unknown origins.
+ALLOWED_ORIGINS = "https://gmoncrieff.github.io,http://localhost:8000,http://127.0.0.1:8000"
+CACHE_SECONDS = "86400"
+
+# ARRAYLAKE_KEY is a secret: set by the deploy workflow, or locally in .dev.vars
