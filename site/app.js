@@ -42,7 +42,9 @@ const esri = (name) =>
   });
 
 const viewer = new Cesium.Viewer("globe", {
-  baseLayer: new Cesium.ImageryLayer(esri("World_Dark_Gray_Base")),
+  baseLayer: new Cesium.ImageryLayer(esri("World_Light_Gray_Base")),
+  skyBox: false,
+  skyAtmosphere: false,
   baseLayerPicker: false,
   geocoder: false,
   homeButton: true,
@@ -57,11 +59,13 @@ const viewer = new Cesium.Viewer("globe", {
   maximumRenderTimeChange: Infinity,
 });
 const scene = viewer.scene;
-scene.globe.baseColor = Cesium.Color.fromCssColorString("#0b0f19");
-scene.backgroundColor = Cesium.Color.fromCssColorString("#05070d");
+// Plain white page: no stars or blue atmosphere tint (skyBox: false also drops the sun and moon).
+scene.globe.baseColor = Cesium.Color.fromCssColorString("#d9d9d9");
+scene.globe.showGroundAtmosphere = false;
+scene.backgroundColor = Cesium.Color.WHITE;
 scene.fog.enabled = false;
 
-const labels = viewer.imageryLayers.addImageryProvider(esri("World_Dark_Gray_Reference"));
+const labels = viewer.imageryLayers.addImageryProvider(esri("World_Light_Gray_Reference"));
 
 const home = Cesium.Cartesian3.fromDegrees(20, 8, 19_000_000);
 viewer.camera.setView({ destination: home });
@@ -212,8 +216,8 @@ const marker = viewer.entities.add({
   position: Cesium.Cartesian3.fromDegrees(0, 0),
   point: {
     pixelSize: 11,
-    color: Cesium.Color.fromCssColorString("#fb8761"),
-    outlineColor: Cesium.Color.fromCssColorString("#05070d"),
+    color: Cesium.Color.BLACK,
+    outlineColor: Cesium.Color.WHITE,
     outlineWidth: 2,
   },
 });

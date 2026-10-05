@@ -44,7 +44,7 @@ export function renderChart(container, data) {
 
   // uncertainty bands, widest first
   if (fc.length) {
-    svg.append(band(fc, "lo95", "hi95", x, y, 0.18));
+    svg.append(band(fc, "lo95", "hi95", x, y, 0.16));
     svg.append(band(fc, "lo50", "hi50", x, y, 0.42));
   }
 
@@ -57,8 +57,12 @@ export function renderChart(container, data) {
 
   if (fc.length) {
     svg.append(el("path", { d: line(fc.map((d) => [x(d.year), y(d.median)])), fill: "none",
-      stroke: "var(--accent)", "stroke-width": 2, "stroke-linejoin": "round" }));
-    for (const d of fc) svg.append(dot(x(d.year), y(d.median), "var(--accent)"));
+      stroke: "var(--accent)", "stroke-width": 2, "stroke-dasharray": "5 3", "stroke-linejoin": "round" }));
+    // open markers distinguish the forecast from the filled observed markers in greyscale
+    for (const d of fc) {
+      svg.append(el("circle", { cx: x(d.year), cy: y(d.median), r: 4, fill: "var(--paper)",
+        stroke: "var(--accent)", "stroke-width": 1.5 }));
+    }
   }
   if (obs.length) {
     svg.append(el("path", { d: line(obs.map((d) => [x(d.year), y(d.hm)])), fill: "none",
