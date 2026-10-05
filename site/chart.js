@@ -1,5 +1,5 @@
 // Observed + forecast fan chart, drawn as SVG.
-// data = { observed: [{year, hm}], forecast: [{year, lo95, lo50, median, hi50, hi95}] }
+// data = { observed: [{year, hm}], forecast: [{year, lo99, lo95, lo50, median, hi50, hi95, hi99}] }
 
 const SVG = "http://www.w3.org/2000/svg";
 const M = { top: 16, right: 14, bottom: 26, left: 38 };
@@ -13,7 +13,7 @@ export function renderChart(container, data) {
   const w = width - M.left - M.right;
   const h = height - M.top - M.bottom;
 
-  const all = [...data.observed.map((d) => d.hm), ...data.forecast.map((d) => d.hi95)].filter(Number.isFinite);
+  const all = [...data.observed.map((d) => d.hm), ...data.forecast.flatMap((d) => [d.hi99, d.hi95])].filter(Number.isFinite);
   const yMax = Math.min(1, niceCeil(Math.max(0.05, ...all) * 1.12)); // HM is bounded at 1
   const x = (yr) => M.left + ((yr - X0) / (X1 - X0)) * w;
   const y = (v) => M.top + h - (v / yMax) * h;
@@ -42,10 +42,10 @@ export function renderChart(container, data) {
   const fc = data.forecast.filter((d) => Number.isFinite(d.median));
   const obs = data.observed.filter((d) => Number.isFinite(d.hm));
 
-  // uncertainty bands, widest first
-  if (fc.length) {
-    svg.append(band(fc, "lo95", "hi95", x, y, 0.16));
-    svg.append(band(fc, "lo50", "hi50", x, y, 0.42));
+  // uncertainty bands, widest first; opaque greys so each region matches its legend swatch
+  for (const [lo, hi, fill] of [["lo99", "hi99", "var(--band99)"], ["lo95", "hi95", "var(--band95)"], ["lo50", "hi50", "var(--band50)"]]) {
+    const rows = fc.filter((d) => Number.isFinite(d[lo]) && Number.isFinite(d[hi]));
+    if (rows.length) svg.append(band(rows, lo, hi, x, y, fill));
   }
 
   // bridge from the last observation to the first forecast
@@ -99,7 +99,8 @@ export function renderChart(container, data) {
       : `<strong>${r.year} forecast</strong>
          <div class="row">Median <b>${fmt(r.d.median)}</b></div>
          <div class="row">50% interval <b>${fmt(r.d.lo50)} – ${fmt(r.d.hi50)}</b></div>
-         <div class="row">95% interval <b>${fmt(r.d.lo95)} – ${fmt(r.d.hi95)}</b></div>`;
+         <div class="row">95% interval <b>${fmt(r.d.lo95)} – ${fmt(r.d.hi95)}</b></div>
+         <div class="row">99% interval <b>${fmt(r.d.lo99)} – ${fmt(r.d.hi99)}</b></div>`;
     tip.hidden = false;
     const tw = tip.offsetWidth;
     tip.style.left = `${cx + 14 + tw > width ? cx - 14 - tw : cx + 14}px`;
@@ -147,10 +148,10 @@ export function renderMessage(container, message, { loading = false } = {}) {
   container.replaceChildren(box);
 }
 
-function band(rows, lo, hi, x, y, opacity) {
+function band(rows, lo, hi, x, y, fill) {
   const top = rows.map((d) => [x(d.year), y(d[hi])]);
   const bottom = rows.map((d) => [x(d.year), y(d[lo])]).reverse();
-  return el("path", { d: `${line(top)}L${line(bottom).slice(1)}Z`, fill: "var(--accent)", "fill-opacity": opacity });
+  return el("path", { d: `${line(top)}L${line(bottom).slice(1)}Z`, fill });
 }
 
 function dot(cx, cy, fill) {

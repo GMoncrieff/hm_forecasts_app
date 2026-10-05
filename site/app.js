@@ -257,7 +257,11 @@ async function selectPoint(lon, lat) {
   renderMessage($("chart"), "Fetching the time series for this pixel…", { loading: true });
 
   // One request per percentile is much faster than asking for all 64 at once.
-  const bands = { lo95: 2.5, lo50: nearestPct(25), median: 50, hi50: nearestPct(75), hi95: 97.5 };
+  // Key order sets the column order in the values table and CSV.
+  const bands = {
+    lo99: nearestPct(0.5), lo95: 2.5, lo50: nearestPct(25), median: 50,
+    hi50: nearestPct(75), hi95: 97.5, hi99: nearestPct(99.5),
+  };
   const coords = `POINT(${lon.toFixed(5)} ${lat.toFixed(5)})`;
   const edr = (group, extra = {}) =>
     fetchCsv(`${PROXY}/edr/${group}/edr/position?${new URLSearchParams({ f: "csv", "parameter-name": "hm", coords, ...extra })}`);
@@ -336,11 +340,11 @@ function nearestPct(p) {
 
 function renderTable({ observed, forecast }, bands) {
   const f = (v) => (Number.isFinite(v) ? v.toFixed(4) : "");
-  const header = ["Year", "Observed", `P${ordinal(bands.lo95)}`, `P${ordinal(bands.lo50)}`, "Median",
-    `P${ordinal(bands.hi50)}`, `P${ordinal(bands.hi95)}`];
+  const keys = Object.keys(bands);
+  const header = ["Year", "Observed", ...keys.map((k) => (k === "median" ? "Median" : `P${ordinal(bands[k])}`))];
   const rows = [
-    ...observed.map((d) => [d.year, f(d.hm), "", "", "", "", ""]),
-    ...forecast.map((d) => [d.year, "", f(d.lo95), f(d.lo50), f(d.median), f(d.hi50), f(d.hi95)]),
+    ...observed.map((d) => [d.year, f(d.hm), ...keys.map(() => "")]),
+    ...forecast.map((d) => [d.year, "", ...keys.map((k) => f(d[k]))]),
   ];
 
   const table = document.createElement("table");

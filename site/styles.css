@@ -7,6 +7,10 @@
   --ink: #000000;
   --muted: #555555;
   --accent: #4d4d4d; /* forecast series and selected-state ink */
+  /* forecast interval fills, lightest = widest */
+  --band99: #ececec;
+  --band95: #d2d2d2;
+  --band50: #b0b0b0;
   --focus: #000000;
   /* magma, sampled at 0, 0.1, … 1 — must match MAGMA in app.js */
   --magma: #000004, #140e36, #3b0f70, #641a80, #8c2981, #b73779, #de4968, #f7705c, #fe9f6d, #fecf92, #fcfdbf;
@@ -217,8 +221,9 @@ input[type="range"] {
   background: var(--paper);
   box-sizing: border-box;
 }
-.key-50 { width: 14px; height: 10px; background: rgba(77, 77, 77, 0.42); }
-.key-95 { width: 14px; height: 10px; background: rgba(77, 77, 77, 0.16); }
+.key-50 { width: 14px; height: 10px; background: var(--band50); }
+.key-95 { width: 14px; height: 10px; background: var(--band95); }
+.key-99 { width: 14px; height: 10px; background: var(--band99); }
 
 .chart { position: relative; height: 240px; }
 .chart svg { display: block; width: 100%; height: 100%; overflow: visible; font-family: var(--serif); }
